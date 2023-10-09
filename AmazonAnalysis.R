@@ -1,16 +1,15 @@
 library(tidyverse)
 library(vroom)
 library(tidymodels)
-library(ggmosaic)
 
-## 112
 amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
+amazon_train$ACTION <- factor(amazon_train$ACTION)
 amazon_train
 
 amazon_test <- vroom("./STAT\ 348/AmazonEmployeeAccess/test.csv")
 amazon_test
 
-ggplot(data = amazon_train, mapping = aes(x = ROLE_TITLE)) +
+ggplot(data = amazon_train, mapping = aes(x = ACTION)) +
   geom_bar()
   
 ggplot(data = amazon_train, mapping = aes(x = ROLE_ROLLUP_1)) +
@@ -26,16 +25,26 @@ ggplot(df_counts_20, aes(x = Count.Var1, y = Count.Freq)) +
 
 amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
   step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-  step_other(RESOURCE, threshold=.01) %>%
-  step_other(MGR_ID, threshold=.01) %>%
-  step_other(ROLE_ROLLUP_1, threshold=.01) %>%
-  step_other(ROLE_ROLLUP_2, threshold=.01) %>%
-  step_other(ROLE_DEPTNAME, threshold=.01) %>%
-  step_other(ROLE_TITLE, threshold=.01) %>%
-  step_other(ROLE_FAMILY_DESC, threshold=.01) %>%
-  step_other(ROLE_FAMILY, threshold=.01) %>%
-  step_other(ROLE_CODE, threshold=.01) %>%
+  step_other(c(RESOURCE, MGR_ID, ROLE_ROLLUP_1, ROLE_ROLLUP_2, ROLE_DEPTNAME, ROLE_TITLE, ROLE_FAMILY_DESC, ROLE_FAMILY, ROLE_CODE), threshold=.01) %>%
   step_dummy(all_nominal_predictors())
 
 prep <- prep(amazon_recipe)
 baked_train <- bake(prep, new_data = amazon_train)
+
+## logistic regression
+log_reg_mod <- logistic_reg() %>% #Type of model
+  set_engine("glm")
+
+amazon_workflow <- workflow() %>%
+add_recipe(amazon_recipe) %>%
+add_model(log_reg_mod) %>%
+fit(data = amazon_train) # Fit the workflow
+
+amazon_predictions <- predict(amazon_workflow,
+                                new_data=amazon_test,
+                              type="prob") # "class" or "prob" (see doc)
+
+amazon_predictions$Action <- if_else(amazon_predictions$.pred_1 >= .7, 1, 0)
+amazon_predictions$Id <- amazon_test$id
+amazon_predictions <- amazon_predictions %>%
+  select(c(Id, Action))
