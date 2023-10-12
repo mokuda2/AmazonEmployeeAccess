@@ -44,7 +44,9 @@ amazon_predictions <- predict(amazon_workflow,
                                 new_data=amazon_test,
                               type="prob") # "class" or "prob" (see doc)
 
-amazon_predictions$Action <- if_else(amazon_predictions$.pred_1 >= .7, 1, 0)
+amazon_predictions$Action <- if_else(amazon_predictions$.pred_1 >= .95, 1, 0)
 amazon_predictions$Id <- amazon_test$id
-amazon_predictions <- amazon_predictions %>%
+amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
+
+write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/logreg.csv", row.names = F)
