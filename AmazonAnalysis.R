@@ -1,6 +1,7 @@
 library(tidyverse)
 library(vroom)
 library(tidymodels)
+library(embed)
 
 amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
@@ -50,3 +51,52 @@ amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
 write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/logreg.csv", row.names = F)
+
+## penalized logistic regression
+target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
+  step_mutate_at(all_numeric_predictors(), fn=factor) %>%
+  # step_other(all_nominal_predictors(), threshold=.001) %>%
+  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION))
+prep <- prep(target_encoding_amazon_recipe)
+baked_train <- bake(prep, new_data = amazon_train)
+
+pen_log_reg_model <- logistic_reg(mixture=tune(), penalty=tune()) %>% #Type of model
+  set_engine("glmnet")
+
+amazon_workflow <- workflow() %>%
+  add_recipe(target_encoding_amazon_recipe) %>%
+  add_model(pen_log_reg_model)
+
+# Grid of values to tune over
+tuning_grid <- grid_regular(penalty(),
+                            mixture(),
+                            levels = 5) ## L^2 total tuning possibilities
+
+# Split data for CV
+folds <- vfold_cv(amazon_train, v = 5, repeats=1)
+
+# Run the CV
+CV_results <- amazon_workflow %>%
+  tune_grid(resamples=folds,
+          grid=tuning_grid,
+          metrics=metric_set(roc_auc)) #Or leave metrics NULL
+
+# Find Best Tuning Parameters
+bestTune <- CV_results %>%
+  select_best("roc_auc")
+
+# Finalize the Workflow & fit it
+final_wf <-amazon_workflow %>%
+  finalize_workflow(bestTune) %>%
+  fit(data=amazon_train)
+
+# Predict
+amazon_predictions <- final_wf %>%
+  predict(new_data = amazon_test, type="prob")
+
+amazon_predictions$Action <- amazon_predictions$.pred_1
+amazon_predictions$Id <- amazon_test$id
+amazon_final <- amazon_predictions %>%
+  select(c(Id, Action))
+
+write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/penalized_log_reg.csv", row.names = F)
