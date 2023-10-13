@@ -51,6 +51,8 @@ amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
 write.csv(amazon_final, "logreg.csv", row.names = F)
+save(file = 'amazon_workflow.RData', list = c('amazon_workflow'))
+load('amazon_workflow.RData')
 
 ## penalized logistic regression
 target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
@@ -100,3 +102,5 @@ amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
 write.csv(amazon_final, "penalized_log_reg.csv", row.names = F)
+save(file = 'final_workflow.RData', list = c('final_wf'))
+load('final_workflow.RData')
