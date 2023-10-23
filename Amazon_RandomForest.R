@@ -6,11 +6,11 @@ library(discrim)
 library(naivebayes)
 library(kknn)
 
-amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
+amazon_train <- vroom("train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
 amazon_train
 
-amazon_test <- vroom("./STAT\ 348/AmazonEmployeeAccess/test.csv")
+amazon_test <- vroom("test.csv")
 amazon_test
 
 rf_model <- rand_forest(mtry = tune(),
