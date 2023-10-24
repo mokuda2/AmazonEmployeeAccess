@@ -60,4 +60,4 @@ amazon_predictions$Id <- amazon_test$id
 amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
-write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/rfclassification.csv", row.names = F)
+write.csv(amazon_final, "rfclassification.csv", row.names = F)
