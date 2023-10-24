@@ -33,7 +33,7 @@ amazon_workflow <- workflow() %>%
 # Set up grid of tuning values
 tuning_grid <- grid_regular(mtry(range=c(1,(ncol(amazon_train) - 1))),
                             min_n(),
-                            levels = 10) ## L^2 total tuning possibilities
+                            levels = 5) ## L^2 total tuning possibilities
 
 # Set up K-fold CV
 folds <- vfold_cv(amazon_train, v = 10, repeats=1)
