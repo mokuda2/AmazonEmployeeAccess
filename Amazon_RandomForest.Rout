@@ -161,3 +161,9 @@ There were issues with some computations   A: x1There were issues with some com
 → C | warning: Model failed to converge with max|grad| = 0.346774 (tol = 0.002, component 1), Model is nearly unidentifiable: very large eigenvalue
                 - Rescale variables?
 There were issues with some computations   A: x1   B: x1There were issues with some computations   A: x1   B: x1   C: x1
+→ D | warning: Model failed to converge with max|grad| = 0.419374 (tol = 0.002, component 1), Model is nearly unidentifiable: very large eigenvalue
+                - Rescale variables?
+There were issues with some computations   A: x1   B: x1   C: x1There were issues with some computations   A: x1   B: x1   C: x1   D: x1
+→ E | warning: Model failed to converge with max|grad| = 0.420061 (tol = 0.002, component 1), Model is nearly unidentifiable: very large eigenvalue
+                - Rescale variables?
+There were issues with some computations   A: x1   B: x1   C: x1   D: x1There were issues with some computations   A: x1   B: x1   C: x1   D: x1   E: x1
