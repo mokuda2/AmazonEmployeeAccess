@@ -6,12 +6,12 @@
 # library(naivebayes)
 # library(kknn)
 # 
-amazon_train <- vroom("train.csv")
-amazon_train$ACTION <- factor(amazon_train$ACTION)
-amazon_train
-
-amazon_test <- vroom("test.csv")
-amazon_test
+# amazon_train <- vroom("train.csv")
+# amazon_train$ACTION <- factor(amazon_train$ACTION)
+# amazon_train
+# 
+# amazon_test <- vroom("test.csv")
+# amazon_test
 # 
 # rf_model <- rand_forest(mtry = tune(),
 #                         min_n = tune(),
