@@ -6,12 +6,12 @@
 # library(naivebayes)
 # library(kknn)
 # 
-# amazon_train <- vroom("train.csv")
-# amazon_train$ACTION <- factor(amazon_train$ACTION)
-# amazon_train
-# 
-# amazon_test <- vroom("test.csv")
-# amazon_test
+amazon_train <- vroom("train.csv")
+amazon_train$ACTION <- factor(amazon_train$ACTION)
+amazon_train
+
+amazon_test <- vroom("test.csv")
+amazon_test
 # 
 # rf_model <- rand_forest(mtry = tune(),
 #                         min_n = tune(),
@@ -79,7 +79,7 @@ amazon_test <- vroom("test.csv")
 
 # Define XGBoost model
 xgb_model <- boost_tree(
-  trees = tune(), 
+  trees = tune(),
   tree_depth = tune(),
   mtry = tune(),
   learn_rate = tune(),
@@ -93,7 +93,8 @@ xgb_model <- boost_tree(
 # Create a workflow with model & recipe
 target_encoding_amazon_recipe <- recipe(ACTION ~ ., data = amazon_train) %>%
   step_mutate_at(all_numeric_predictors(), fn = factor) %>%
-  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION))
+  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
+  step_normalize()
 prep <- prep(target_encoding_amazon_recipe)
 baked_train <- bake(prep, new_data = amazon_train)
 
