@@ -72,10 +72,10 @@ library(naivebayes)
 library(kknn)
 
 # Load data
-amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
+amazon_train <- vroom("train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
 
-amazon_test <- vroom("./STAT\ 348/AmazonEmployeeAccess/test.csv")
+amazon_test <- vroom("test.csv")
 
 # Define XGBoost model
 xgb_model <- boost_tree(
@@ -134,4 +134,4 @@ amazon_predictions$Id <- amazon_test$id
 amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
-write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/xgboost_classification.csv", row.names = FALSE)
+write.csv(amazon_final, "xgboost_classification.csv", row.names = FALSE)
