@@ -66,12 +66,16 @@ library(tidyverse)
 library(vroom)
 library(tidymodels)
 library(xgboost)  # Add XGBoost library
+library(embed)
+library(discrim)
+library(naivebayes)
+library(kknn)
 
 # Load data
-amazon_train <- vroom("train.csv")
+amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
 
-amazon_test <- vroom("test.csv")
+amazon_test <- vroom("./STAT\ 348/AmazonEmployeeAccess/test.csv")
 
 # Define XGBoost model
 xgb_model <- boost_tree(
@@ -99,12 +103,12 @@ amazon_workflow <- workflow() %>%
 
 # Set up grid of tuning values
 tuning_grid <- grid_regular(
-  trees(range = c(100, 1000)),  # Adjust the range as per your preference
+  trees(range = c(400, 500)),  # Adjust the range as per your preference
   tree_depth(range = c(3, 10)),
   mtry(range = c(1, (ncol(amazon_train) - 1))),
   learn_rate(range = c(0.01, 0.1)),
   loss_reduction(range = c(0, 1)),
-  sample_size(range = c(0.5, 1))
+  sample_size(range = c(0, 1))
 )
 
 # Set up K-fold CV
@@ -130,4 +134,4 @@ amazon_predictions$Id <- amazon_test$id
 amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
-write.csv(amazon_final, "xgboost_classification.csv", row.names = FALSE)
+write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/xgboost_classification.csv", row.names = FALSE)
