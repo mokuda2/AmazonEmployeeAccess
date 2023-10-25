@@ -5,6 +5,7 @@ library(embed)
 library(discrim)
 library(naivebayes)
 library(kknn)
+library(kernlab)
 
 amazon_train <- vroom("./STAT\ 348/AmazonEmployeeAccess/train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
@@ -343,3 +344,49 @@ amazon_final <- amazon_predictions %>%
   select(c(Id, Action))
 
 write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/pcaknn.csv", row.names = F)
+
+## svm
+svmRadial <- svm_rbf(rbf_sigma=tune(), cost=tune()) %>% # set or tune
+  set_mode("classification") %>%
+  set_engine("kernlab")
+
+target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
+  step_mutate_at(all_numeric_predictors(), fn=factor) %>%
+  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION)) %>%
+  step_normalize()
+prep <- prep(target_encoding_amazon_recipe)
+baked_train <- bake(prep, new_data = amazon_train)
+
+svm_wf <- workflow() %>%
+  add_recipe(target_encoding_amazon_recipe) %>%
+  add_model(svmRadial)
+
+# Fit or Tune Model HERE
+tuning_grid <- grid_regular(rbf_sigma(),
+                            cost(),
+                            levels = 2) ## L^2 total tuning possibilities
+
+folds <- vfold_cv(amazon_train, v = 2, repeats=1)
+
+CV_results <- svm_wf %>%
+  tune_grid(resamples=folds,
+            grid=tuning_grid,
+            metrics=metric_set(roc_auc))
+
+# Predict
+bestTune <- CV_results %>%
+  select_best("roc_auc")
+
+# Finalize workflow and predict
+final_wf <- svm_wf %>%
+  finalize_workflow(bestTune) %>%
+  fit(data=amazon_train)
+
+amazon_predictions <- predict(final_wf, new_data = amazon_test, type="prob")
+
+amazon_predictions$Action <- amazon_predictions$.pred_1
+amazon_predictions$Id <- amazon_test$id
+amazon_final <- amazon_predictions %>%
+  select(c(Id, Action))
+
+write.csv(amazon_final, "./STAT\ 348/AmazonEmployeeAccess/svmradial.csv", row.names = F)
