@@ -472,4 +472,4 @@ my_recipe <- recipe(ACTION ~ ., data = amazon_train) %>%
 
 # apply the recipe to your data
 prepped_recipe <- prep(my_recipe)
-baked <- bake(prep, new_data = amazon_train)
+baked <- bake(prepped_recipe, new_data = amazon_train)

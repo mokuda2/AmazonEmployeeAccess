@@ -24,73 +24,73 @@ prepped_recipe <- prep(my_recipe)
 baked <- bake(prepped_recipe, new_data = amazon_train)
 
 ## logistic regression
-log_reg_mod <- logistic_reg() %>% #Type of model
-  set_engine("glm")
-
-amazon_workflow <- workflow() %>%
-  add_recipe(my_recipe) %>%
-  add_model(log_reg_mod) %>%
-  fit(data = amazon_train) # Fit the workflow
-
-amazon_predictions <- predict(amazon_workflow,
-                              new_data=amazon_test,
-                              type="prob") # "class" or "prob" (see doc)
-
-amazon_predictions$Action <- if_else(amazon_predictions$.pred_1 >= .95, 1, 0)
-amazon_predictions$Id <- amazon_test$id
-amazon_final <- amazon_predictions %>%
-  select(c(Id, Action))
-
-write.csv(amazon_final, "logreg.csv", row.names = F)
-
-## penalized logistic regression
-# target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
-#   step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-#   # step_other(all_nominal_predictors(), threshold=.001) %>%
-#   step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION))
-# prep <- prep(target_encoding_amazon_recipe)
-# baked_train <- bake(prep, new_data = amazon_train)
-
-pen_log_reg_model <- logistic_reg(mixture=tune(), penalty=tune()) %>% #Type of model
-  set_engine("glmnet")
-
-amazon_workflow <- workflow() %>%
-  add_recipe(my_recipe) %>%
-  add_model(pen_log_reg_model)
-
-# Grid of values to tune over
-tuning_grid <- grid_regular(penalty(),
-                            mixture(),
-                            levels = 5) ## L^2 total tuning possibilities
-
-# Split data for CV
-folds <- vfold_cv(amazon_train, v = 5, repeats=1)
-
-# Run the CV
-CV_results <- amazon_workflow %>%
-  tune_grid(resamples=folds,
-            grid=tuning_grid,
-            metrics=metric_set(roc_auc)) #Or leave metrics NULL
-
-# Find Best Tuning Parameters
-bestTune <- CV_results %>%
-  select_best("roc_auc")
-
-# Finalize the Workflow & fit it
-final_wf <-amazon_workflow %>%
-  finalize_workflow(bestTune) %>%
-  fit(data=amazon_train)
-
-# Predict
-amazon_predictions <- final_wf %>%
-  predict(new_data = amazon_test, type="prob")
-
-amazon_predictions$Action <- amazon_predictions$.pred_1
-amazon_predictions$Id <- amazon_test$id
-amazon_final <- amazon_predictions %>%
-  select(c(Id, Action))
-
-write.csv(amazon_final, "penalized_log_reg.csv", row.names = F)
+# log_reg_mod <- logistic_reg() %>% #Type of model
+#   set_engine("glm")
+# 
+# amazon_workflow <- workflow() %>%
+#   add_recipe(my_recipe) %>%
+#   add_model(log_reg_mod) %>%
+#   fit(data = amazon_train) # Fit the workflow
+# 
+# amazon_predictions <- predict(amazon_workflow,
+#                               new_data=amazon_test,
+#                               type="prob") # "class" or "prob" (see doc)
+# 
+# amazon_predictions$Action <- if_else(amazon_predictions$.pred_1 >= .95, 1, 0)
+# amazon_predictions$Id <- amazon_test$id
+# amazon_final <- amazon_predictions %>%
+#   select(c(Id, Action))
+# 
+# write.csv(amazon_final, "logreg.csv", row.names = F)
+# 
+# ## penalized logistic regression
+# # target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
+# #   step_mutate_at(all_numeric_predictors(), fn=factor) %>%
+# #   # step_other(all_nominal_predictors(), threshold=.001) %>%
+# #   step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION))
+# # prep <- prep(target_encoding_amazon_recipe)
+# # baked_train <- bake(prep, new_data = amazon_train)
+# 
+# pen_log_reg_model <- logistic_reg(mixture=tune(), penalty=tune()) %>% #Type of model
+#   set_engine("glmnet")
+# 
+# amazon_workflow <- workflow() %>%
+#   add_recipe(my_recipe) %>%
+#   add_model(pen_log_reg_model)
+# 
+# # Grid of values to tune over
+# tuning_grid <- grid_regular(penalty(),
+#                             mixture(),
+#                             levels = 5) ## L^2 total tuning possibilities
+# 
+# # Split data for CV
+# folds <- vfold_cv(amazon_train, v = 5, repeats=1)
+# 
+# # Run the CV
+# CV_results <- amazon_workflow %>%
+#   tune_grid(resamples=folds,
+#             grid=tuning_grid,
+#             metrics=metric_set(roc_auc)) #Or leave metrics NULL
+# 
+# # Find Best Tuning Parameters
+# bestTune <- CV_results %>%
+#   select_best("roc_auc")
+# 
+# # Finalize the Workflow & fit it
+# final_wf <-amazon_workflow %>%
+#   finalize_workflow(bestTune) %>%
+#   fit(data=amazon_train)
+# 
+# # Predict
+# amazon_predictions <- final_wf %>%
+#   predict(new_data = amazon_test, type="prob")
+# 
+# amazon_predictions$Action <- amazon_predictions$.pred_1
+# amazon_predictions$Id <- amazon_test$id
+# amazon_final <- amazon_predictions %>%
+#   select(c(Id, Action))
+# 
+# write.csv(amazon_final, "penalized_log_reg.csv", row.names = F)
 
 ## random forest classification
 rf_model <- rand_forest(mtry = tune(),
@@ -113,10 +113,10 @@ amazon_workflow <- workflow() %>%
 # Set up grid of tuning values
 tuning_grid <- grid_regular(mtry(range=c(1,(ncol(amazon_train) - 1))),
                             min_n(),
-                            levels = 10) ## L^2 total tuning possibilities
+                            levels = 5) ## L^2 total tuning possibilities
 
 # Set up K-fold CV
-folds <- vfold_cv(amazon_train, v = 10, repeats=1)
+folds <- vfold_cv(amazon_train, v = 5, repeats=1)
 
 CV_results <- amazon_workflow %>%
   tune_grid(resamples=folds,
