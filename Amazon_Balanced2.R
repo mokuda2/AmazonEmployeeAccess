@@ -9,9 +9,11 @@ amazon_train$ACTION <- factor(amazon_train$ACTION)
 amazon_test <- vroom("test.csv")
 
 ## knn
-target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
-  step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION)) %>%
+target_encoding_amazon_recipe <- recipe(ACTION ~ ., data = amazon_train) %>%
+  step_mutate_at(all_numeric_predictors(), fn = factor) %>%
+  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
+  #Everything numeric for SMOTE so encode it here
+  step_smote(all_outcomes(), neighbors=5) %>%
   step_normalize()
 prep <- prep(target_encoding_amazon_recipe)
 baked_train <- bake(prep, new_data = amazon_train)
@@ -56,9 +58,11 @@ write.csv(amazon_final, "knn.csv", row.names = F)
 
 ## pca
 # naive bayes
-target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
-  step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION)) %>%
+target_encoding_amazon_recipe <- recipe(ACTION ~ ., data = amazon_train) %>%
+  step_mutate_at(all_numeric_predictors(), fn = factor) %>%
+  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
+  #Everything numeric for SMOTE so encode it here
+  step_smote(all_outcomes(), neighbors=5) %>%
   step_normalize(all_predictors()) %>%
   step_pca(all_predictors(), threshold=.9)
 prep <- prep(target_encoding_amazon_recipe)
@@ -105,9 +109,11 @@ amazon_final <- amazon_predictions %>%
 write.csv(amazon_final, "pcanaivebayes.csv", row.names = F)
 
 # knn
-target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
-  step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION)) %>%
+target_encoding_amazon_recipe <- recipe(ACTION ~ ., data = amazon_train) %>%
+  step_mutate_at(all_numeric_predictors(), fn = factor) %>%
+  step_lencode_mixed(all_nominal_predictors(), outcome = vars(ACTION)) %>%
+  #Everything numeric for SMOTE so encode it here
+  step_smote(all_outcomes(), neighbors=5) %>%
   step_normalize(all_predictors()) %>%
   step_pca(all_predictors(), threshold=.9)
 prep <- prep(target_encoding_amazon_recipe)
