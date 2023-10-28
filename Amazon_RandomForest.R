@@ -5,6 +5,7 @@ library(embed)
 library(discrim)
 library(naivebayes)
 library(kknn)
+library(themis)
 
 amazon_train <- vroom("train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
