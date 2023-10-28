@@ -8,21 +8,20 @@ library(kknn)
 
 amazon_train <- vroom("train.csv")
 amazon_train$ACTION <- factor(amazon_train$ACTION)
-amazon_train
 
 amazon_test <- vroom("test.csv")
-amazon_test
 
 rf_model <- rand_forest(mtry = tune(),
                         min_n = tune(),
-                        trees=1000) %>%
+                        trees=1500) %>%
   set_engine("ranger") %>%
   set_mode("classification")
 
 # Create a workflow with model & recipe
 target_encoding_amazon_recipe <- recipe(ACTION~., data=amazon_train) %>%
   step_mutate_at(all_numeric_predictors(), fn=factor) %>%
-  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION))
+  step_lencode_mixed(all_nominal_predictors(), outcome=vars(ACTION)) %>%
+  step_smote(all_outcomes(), neighbors=10)
 prep <- prep(target_encoding_amazon_recipe)
 baked_train <- bake(prep, new_data = amazon_train)
 
@@ -36,7 +35,7 @@ tuning_grid <- grid_regular(mtry(range=c(1,(ncol(amazon_train) - 1))),
                             levels = 10) ## L^2 total tuning possibilities
 
 # Set up K-fold CV
-folds <- vfold_cv(amazon_train, v = 15, repeats=1)
+folds <- vfold_cv(amazon_train, v = 10, repeats=1)
 
 CV_results <- amazon_workflow %>%
   tune_grid(resamples=folds,
